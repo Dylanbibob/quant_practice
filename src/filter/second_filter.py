@@ -33,7 +33,7 @@ def is_downtrend(df, period=20):
     
     return is_down
 
-def has_high_shadow(df, days=5, shadow_ratio=0.03):
+def has_high_shadow(df, days=12, shadow_ratio=0.2):
     """
     判断最近几天是否出现高位上影线
     """
