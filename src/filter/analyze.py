@@ -5,8 +5,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import filter.second_filter as sf
-from local_process_functions.load_single_stock_csv import load_single_stock_csv
+import filter.slope_shadow_cal as sf
 import glob
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
@@ -30,8 +29,8 @@ def analyze_stock_technical(df, stock_code):
     high_shadow = sf.has_high_shadow(df)
     
     # 计算一些辅助指标
-    ma5 = df['收盘'].rolling(5).mean().iloc[-1] if len(df) >= 5 else None
-    ma20 = df['收盘'].rolling(20).mean().iloc[-1] if len(df) >= 20 else None
+    ma5 = df['收盘'].rolling(5).mean().iloc[-1] if len(df) >= 5 else None #  计算收盘价的5日均线
+    ma20 = df['收盘'].rolling(20).mean().iloc[-1] if len(df) >= 20 else None #  计算收盘价的20日均线
     
     # 最近5天的平均成交量
     avg_volume_5d = df['成交量'].tail(5).mean()
