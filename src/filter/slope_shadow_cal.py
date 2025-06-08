@@ -60,8 +60,8 @@ def has_high_shadow(df, days=12, shadow_ratio=0.35):
         if total_range > 0:
             shadow_ratio_actual = upper_shadow / total_range
             
-            # 判断是否是高位上影线：上影线比例大于阈值，且收盘价在相对高位
-            if shadow_ratio_actual > shadow_ratio and close > (high + low) / 2:
+            # 判断是否是高位上影线：上影线比例大于阈值，且收盘价在相对高位,如果是则返回True
+            if float(shadow_ratio_actual) > shadow_ratio and close > (high + low) / 2:
                 return True
     
     return False
@@ -80,10 +80,14 @@ if __name__ == '__main__':
     low = ffdc_stock_data['最低'].values
     open_price = ffdc_stock_data['开盘'].values
     close = ffdc_stock_data['收盘'].values
+    
+    bool = has_high_shadow(ffdc_stock_data, days=12, shadow_ratio=0.35)
+    
     total_range = high - low
-    upper_shadow = high - max(open_price, close)
+    upper_shadow = high - open_price
     shadow_ratio_actual = upper_shadow / total_range
-    print(shadow_ratio_actual, upper_shadow, total_range)
+    print(bool,shadow_ratio_actual, upper_shadow, total_range)
+    
     downtrend = is_downtrend(ffdc_stock_data)
     high_shadow = has_high_shadow(ffdc_stock_data)
     print(downtrend)

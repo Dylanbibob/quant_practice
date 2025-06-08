@@ -42,7 +42,7 @@ def analyze_stock_technical(df, stock_code):
         'latest_date': latest_data['日期'],
         'is_downtrend': downtrend,
         'has_high_shadow': high_shadow,
-        'pass_filter': not downtrend and not high_shadow,  # 通过筛选的条件
+        'pass_filter': not downtrend and not high_shadow,  # 如果都不满足，则通过筛选
         'ma5': ma5,
         'ma20': ma20,
         'avg_volume_5d': avg_volume_5d,
@@ -51,11 +51,14 @@ def analyze_stock_technical(df, stock_code):
     
 if __name__ == '__main__':
     
-    ffdc_stock_data = ak.stock_zh_a_hist(symbol='600900', 
-                                    period = "daily", 
-                                    start_date = '20240524',  
-                                    end_date =  '20250524', )
-    result = analyze_stock_technical(ffdc_stock_data,'600900')
+    ffdc_stock_data = ak.stock_zh_a_hist(symbol='300210', 
+                                        period = "daily", 
+                                        start_date = '20250526',  
+                                        end_date =  '20250526',
+                                        adjust = 'qfq'
+                                        )
+    
+    result = analyze_stock_technical(ffdc_stock_data,'300210')
     
     print(result)
     

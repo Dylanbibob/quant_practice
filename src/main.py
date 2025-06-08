@@ -7,7 +7,7 @@ import time
 import os
 from filter.analyze import analyze_stock_technical
 from request_data.request_all_stocks import request_all_stocks
-from request_data.request_single_stock import load_stock_data
+from request_data.request_single_stock import load_stock_data,get_latest_trade_dates
 from local_process_functions.process_csv_files import process_csv_files
 # from local_process.local_process import process_csv_files
 import filter.slope_shadow_cal as sf
@@ -47,7 +47,7 @@ def main():
 
     today_market_filename = f'data\\stock_pool_data\\stock_data_pool{dt.datetime.now().strftime("%Y%m%d")}.csv'
 
-    # 检查当天的CSV文件是否存在
+    # 检查当天的股票池CSV文件数据是否存在
     if os.path.exists(today_market_filename):
         logger.info(f"📁 发现已存在的数据文件: {today_market_filename}")
         logger.info("🔄 直接加载本地CSV文件")
@@ -60,8 +60,8 @@ def main():
         # 保存为CSV文件
         stock_data_pool.to_csv(today_market_filename, index=False, encoding='utf-8-sig')
         logger.info(f"💾 数据已保存到: {today_market_filename}")
-
-
+    
+    
     # 第一次标的筛选 
     first_filtered_data = stock_data_pool[(stock_data_pool['涨跌幅'] > 3) &
                                         (stock_data_pool['涨跌幅'] < 5) & 
@@ -79,6 +79,15 @@ def main():
     first_filtered_data_codes = first_filtered_data['代码'].tolist()
     today = dt.datetime.now().strftime('%Y%m%d')
     start_date = (dt.datetime.now() - dt.timedelta(days=60)).strftime('%Y%m%d')  # 增加到60天获取更多数据
+    
+    latest_trade_date, _ = get_latest_trade_dates()
+    
+    if latest_trade_date is not None:
+        latest_trade_date_str = latest_trade_date.strftime('%Y%m%d')
+        logger.info(f"最新交易日: {latest_trade_date.strftime('%Y-%m-%d')}")
+    else:
+        latest_trade_date_str = today
+        logger.info(f"无法获取最新交易日，使用当前日期: {today}")
 
     logger.info(f"准备分析初次筛选出的{len(first_filtered_data_codes)} 只股票")
     logger.info(f"股票代码: {first_filtered_data_codes}")
@@ -93,7 +102,7 @@ def main():
         
         try:
             # 构建文件路径
-            file_path = f'data\\single_stock_data\\ffdc_{ffdc}_{today}.csv'
+            file_path = f'data\\single_stock_data\\{ffdc}_{latest_trade_date_str}.csv'
             
             # 使用函数获取股票数据（优先本地，否则网络获取）
             ffdc_stock_data, from_local = load_stock_data(ffdc, file_path, start_date, today)
@@ -110,7 +119,7 @@ def main():
                 logger.info(f"    最新价格: {analysis['latest_price']:.2f}")
                 logger.info(f"    最新日期: {analysis['latest_date']}")
                 logger.info(f"    下跌趋势: {'是' if analysis['is_downtrend'] else '否'}")
-                logger.info(f"    高位上影线: {'是' if analysis['has_high_shadow'] else '否'}")
+                logger.info(f"    高位上影线: {'有' if analysis['has_high_shadow'] else '无'}")
                 logger.info(f"    MA5: {analysis['ma5']:.2f}" if analysis['ma5'] else "    MA5: 数据不足")
                 logger.info(f"    MA20: {analysis['ma20']:.2f}" if analysis['ma20'] else "    MA20: 数据不足")
                 
@@ -151,7 +160,7 @@ def main():
     passed_stocks = []
     for result in analysis_results:
         if result.get('valid_data', False):
-            if result.get('pass_filter', False):
+            if result.get('pass_filter', True):
                 passed_stocks.append(result)
                 logger.info(f"✅ {result['code']} - 通过筛选")
             else:
@@ -176,15 +185,13 @@ def main():
             logger.info(f"  数据天数: {stock['data_days']}")
 
 
-        
-    if __name__ == "__main__":
-        
-        # 检查是否有命令行参数
-        if len(sys.argv) > 1 and sys.argv[1] == 'csv':
-            logger.info("🔄 处理CSV文件模式")
-            process_csv_files()
-        else:
-            logger.info("🔄 在线获取数据模式")
-
+# if __name__ == "__main__":
+#     # 检查是否有命令行参数
+#     if len(sys.argv) > 1 and sys.argv[1] == 'csv':
+#         print("🔄 处理CSV文件模式")
+#         process_csv_files()
+#     else:
+#         print("🔄 在线获取数据模式")
+#         main()  # 调用主程序
 if __name__ == "__main__":
-    main()
+    main()  # 调用主程序
