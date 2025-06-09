@@ -9,6 +9,7 @@ from filter.analyze import analyze_stock_technical
 from request_data.request_all_stocks import request_all_stocks
 from request_data.request_single_stock import load_stock_data,get_latest_trade_dates
 from local_process_functions.process_csv_files import process_csv_files
+from filter.volume_analyzer import analyze_moderate_volume
 # from local_process.local_process import process_csv_files
 import filter.slope_shadow_cal as sf
 import sys
@@ -112,7 +113,14 @@ def main():
                 
                 # 进行技术分析
                 analysis = analyze_stock_technical(ffdc_stock_data, ffdc)
-                analysis_results.append(analysis)
+                volume_analysis = analyze_moderate_volume(ffdc_stock_data, ffdc)
+                analysis.update({
+                    'volume_analysis': volume_analysis,
+                    'is_moderate_volume': volume_analysis['is_moderate_volume'],
+                    'volume_ratio': volume_analysis['volume_ratio']
+                })
+                
+                analysis_results.append(analysis)  # 只保留这一行
                 
                 # 显示分析结果
                 logger.info(f"  📈 技术分析结果:")
@@ -120,18 +128,26 @@ def main():
                 logger.info(f"    最新日期: {analysis['latest_date']}")
                 logger.info(f"    下跌趋势: {'是' if analysis['is_downtrend'] else '否'}")
                 logger.info(f"    高位上影线: {'有' if analysis['has_high_shadow'] else '无'}")
+                logger.info(f"    温和放量: {'是' if analysis['is_moderate_volume'] else '否'}")
+                if analysis['volume_ratio']:
+                    logger.info(f"    量比: {analysis['volume_ratio']:.2f}")
+                logger.info(f"    放量原因: {volume_analysis['reason']}")
                 logger.info(f"    MA5: {analysis['ma5']:.2f}" if analysis['ma5'] else "    MA5: 数据不足")
                 logger.info(f"    MA20: {analysis['ma20']:.2f}" if analysis['ma20'] else "    MA20: 数据不足")
                 
-                if analysis['pass_filter']:
-                    logger.info(f"  ✅ {ffdc} 通过技术分析筛选!")
+                if analysis['pass_filter'] and analysis['is_moderate_volume']:
+                    logger.info(f"  ✅ {ffdc} 通过技术分析和温和放量筛选!")
                 else:
                     reasons = []
                     if analysis['is_downtrend']:
                         reasons.append("下跌趋势")
                     if analysis['has_high_shadow']:
                         reasons.append("高位上影线")
+                    if not analysis['is_moderate_volume']:
+                        reasons.append(f"非温和放量({volume_analysis['reason']})")
                     logger.info(f"  ❌ {ffdc} 未通过筛选，原因: {', '.join(reasons)}")
+                    # 更新pass_filter状态
+                    analysis['pass_filter'] = False
             else:
                 logger.info(f"  ❌ 未获取到有效数据")
                 analysis_results.append({
@@ -160,7 +176,7 @@ def main():
     passed_stocks = []
     for result in analysis_results:
         if result.get('valid_data', False):
-            if result.get('pass_filter', True):
+            if result.get('pass_filter', True) and result.get('is_moderate_volume', False):
                 passed_stocks.append(result)
                 logger.info(f"✅ {result['code']} - 通过筛选")
             else:
@@ -169,9 +185,11 @@ def main():
                     reasons.append("下跌趋势")
                 if result.get('has_high_shadow'):
                     reasons.append("高位上影线")
+                if not result.get('is_moderate_volume'):
+                    reasons.append("非温和放量")
                 logger.info(f"❌ {result['code']} - 未通过: {', '.join(reasons)}")
         else:
-            logger.info(f"⚠️  {result['code']} - {result.get('reason', '未知错误')}")
+            logger.info(f"⚠️ {result['code']} - {result.get('reason', '未知错误')}")
 
     logger.info(f"\n最终结果: {len(passed_stocks)} 只股票通过技术分析筛选")
       
