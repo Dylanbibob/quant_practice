@@ -174,24 +174,33 @@ def main():
             logger.info(f"⚠️  {result['code']} - {result.get('reason', '未知错误')}")
 
     logger.info(f"\n最终结果: {len(passed_stocks)} 只股票通过技术分析筛选")
-
+      
+    # 提取股票代码列表
+    filtered_stock_codes = []
     if passed_stocks:
-        logger.info("\n符合条件的股票详情:")
-        for stock in passed_stocks:
-            logger.info(f"代码: {stock['code']}")
-            logger.info(f"  最新价格: {stock['latest_price']:.2f}")
-            logger.info(f"  MA5: {stock['ma5']:.2f}" if stock['ma5'] else "  MA5: 数据不足")
-            logger.info(f"  MA20: {stock['ma20']:.2f}" if stock['ma20'] else "  MA20: 数据不足")
-            logger.info(f"  数据天数: {stock['data_days']}")
+        filtered_stock_codes = [stock['code'] for stock in passed_stocks]
+        logger.info(f"\n✅ 准备传递给交易模块的股票代码:")
+        for code in filtered_stock_codes:
+            logger.info(f"   📊 {code}")
+            
+    # 返回完整筛选结果和代码列表
+    return {
+        'passed_stocks': passed_stocks,
+        'stock_codes': filtered_stock_codes,
+        'analysis_time': dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'total_analyzed': len(analysis_results),
+        'passed_count': len(passed_stocks)
+    }
 
-
-# if __name__ == "__main__":
-#     # 检查是否有命令行参数
-#     if len(sys.argv) > 1 and sys.argv[1] == 'csv':
-#         print("🔄 处理CSV文件模式")
-#         process_csv_files()
-#     else:
-#         print("🔄 在线获取数据模式")
-#         main()  # 调用主程序
 if __name__ == "__main__":
-    main()  # 调用主程序
+    from trading.trade_executor import execute_trading_strategy
+    
+    # 获取筛选结果
+    screening_results = main()
+    
+    # 传递给交易模块
+    if screening_results['stock_codes']:
+        print(f"\n🚀 启动交易模块，处理 {len(screening_results['stock_codes'])} 只股票")
+        execute_trading_strategy(screening_results)
+    else:
+        print("\n⚠️ 没有股票通过筛选，跳过交易模块")
