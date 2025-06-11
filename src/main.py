@@ -46,7 +46,7 @@ def main():
     logger.info(f"📁 日志将保存到: {log_file}")
 
 
-    today_market_filename = f'data\\stock_pool_data\\stock_data_pool{dt.datetime.now().strftime("%Y%m%d")}.csv'
+    today_market_filename = f'.\\data\\stock_pool_data\\stock_data_pool{dt.datetime.now().strftime("%Y%m%d")}.csv'
 
     # 检查当天的股票池CSV文件数据是否存在
     if os.path.exists(today_market_filename):
