@@ -14,17 +14,18 @@ from filter.volume_analyzer import analyze_moderate_volume
 import filter.slope_shadow_cal as sf
 import sys
 pd.set_option('display.float_format', lambda x: '%.2f' % x)
+today = dt.datetime.now().strftime('%Y%m%d')
 
 # 在文件开头添加日志配置
 def setup_logging():
     """设置日志配置"""
     # 确保logs目录存在
-    log_dir = 'logs'
+    log_dir = f'logs'
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
     
     # 生成日志文件名
-    log_filename = f"logs\\stock_analysis_{dt.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+    log_filename = f"logs\\stock_analysis_{today}.log"
     
     # 配置日志
     logging.basicConfig(
@@ -44,10 +45,8 @@ def main():
     logger = logging.getLogger()
     
     logger.info(f"📁 日志将保存到: {log_file}")
-
-
-    today_market_filename = f'.\\data\\stock_pool_data\\stock_data_pool{dt.datetime.now().strftime("%Y%m%d")}.csv'
-
+    today_market_filename = f'..\\data\\stock_pool_data\\stock_data_pool{today}.csv'
+    
     # 检查当天的股票池CSV文件数据是否存在
     if os.path.exists(today_market_filename):
         logger.info(f"📁 发现已存在的数据文件: {today_market_filename}")
@@ -78,7 +77,6 @@ def main():
 
     # 第二次标的筛选
     first_filtered_data_codes = first_filtered_data['代码'].tolist()
-    today = dt.datetime.now().strftime('%Y%m%d')
     start_date = (dt.datetime.now() - dt.timedelta(days=60)).strftime('%Y%m%d')  # 增加到60天获取更多数据
     
     latest_trade_date, _ = get_latest_trade_dates()
@@ -103,7 +101,7 @@ def main():
         
         try:
             # 构建文件路径
-            file_path = f'data\\single_stock_data\\{ffdc}_{latest_trade_date_str}.csv'
+            file_path = f'..\\data\\single_stock_data\\{ffdc}_{latest_trade_date_str}.csv'
             
             # 使用函数获取股票数据（优先本地，否则网络获取）
             ffdc_stock_data, from_local = load_stock_data(ffdc, file_path, start_date, today)
