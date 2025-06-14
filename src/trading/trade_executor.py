@@ -3,42 +3,24 @@ import pandas as pd
 import datetime as dt
 from typing import Dict, List, Any
 
-def execute_trading_strategy(screening_results: Dict[str, Any]) -> None:
-    """
-    执行交易策略
+def calculate_position_size(price: float) -> int:
+    """计算仓位大小"""
+    # 简单的仓位计算逻辑，可根据实际需求调整
+    base_amount = 10000  # 每只股票基础投入金额
+    shares = int(base_amount / price / 100) * 100  # 按手计算
+    return max(shares, 100)  # 至少1手
+
+def calculate_priority(stock_info: Dict[str, Any]) -> int:
+    """计算股票优先级"""
+    # 基于技术指标计算优先级
+    # MA5上穿MA20为高优先级，否则为中等优先级
+    ma5 = stock_info.get('ma5', 0)
+    ma20 = stock_info.get('ma20', 0)
     
-    Args:
-        screening_results: 来自筛选模块的结果字典
-            - passed_stocks: 通过筛选的股票详细信息
-            - stock_codes: 股票代码列表
-            - analysis_time: 分析时间
-            - total_analyzed: 总分析数量
-            - passed_count: 通过筛选数量
-    """
-    logger = logging.getLogger()
-    
-    # 解析筛选结果
-    passed_stocks = screening_results['passed_stocks']
-    stock_codes = screening_results['stock_codes']
-    analysis_time = screening_results['analysis_time']
-    
-    logger.info("\n" + "="*60)
-    logger.info("🚀 交易模块启动")
-    logger.info("="*60)
-    logger.info(f"📊 筛选时间: {analysis_time}")
-    logger.info(f"📈 待交易标的数量: {len(stock_codes)}")
-    
-    # 处理每只股票
-    trading_targets = []
-    for stock_info in passed_stocks:
-        target = process_trading_target(stock_info)
-        trading_targets.append(target)
-    
-    # 执行交易决策
-    execute_trades(trading_targets)
-    
-    # 保存交易计划
-    save_trading_plan(trading_targets, analysis_time)
+    if ma5 > ma20:
+        return 1  # 高优先级
+    else:
+        return 2  # 中等优先级
 
 def process_trading_target(stock_info: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -80,23 +62,21 @@ def process_trading_target(stock_info: Dict[str, Any]) -> Dict[str, Any]:
     
     return trading_target
 
-def calculate_position_size(price: float) -> int:
-    """计算仓位大小"""
-    # 简单的仓位计算逻辑，可根据实际需求调整
-    base_amount = 10000  # 每只股票基础投入金额
-    shares = int(base_amount / price / 100) * 100  # 按手计算
-    return max(shares, 100)  # 至少1手
-
-def calculate_priority(stock_info: Dict[str, Any]) -> int:
-    """计算股票优先级"""
-    # 基于技术指标计算优先级
-    ma5 = stock_info.get('ma5', 0)
-    ma20 = stock_info.get('ma20', 0)
+def simulate_trade_execution(target: Dict[str, Any]) -> None:
+    """模拟交易执行（实际使用时替换为真实交易接口）"""
+    logger = logging.getLogger()
     
-    if ma5 > ma20:
-        return 1  # 高优先级
-    else:
-        return 2  # 中等优先级
+    logger.info(f"🔄 模拟执行交易: {target['code']}")
+    logger.info(f"   委托价格: {target['entry_price']:.2f}")
+    logger.info(f"   委托数量: {target['position_size']} 股")
+    
+    # 实际实现时，这里应该调用券商API
+    # broker_api.place_order(
+    #     symbol=target['code'],
+    #     price=target['entry_price'],
+    #     quantity=target['position_size'],
+    #     order_type='limit'
+    # )
 
 def execute_trades(trading_targets: List[Dict[str, Any]]) -> None:
     """执行交易"""
@@ -113,22 +93,6 @@ def execute_trades(trading_targets: List[Dict[str, Any]]) -> None:
         # 这里应该是实际的交易接口调用
         # 目前只是记录交易计划
         simulate_trade_execution(target)
-
-def simulate_trade_execution(target: Dict[str, Any]) -> None:
-    """模拟交易执行（实际使用时替换为真实交易接口）"""
-    logger = logging.getLogger()
-    
-    logger.info(f"🔄 模拟执行交易: {target['code']}")
-    logger.info(f"   委托价格: {target['entry_price']:.2f}")
-    logger.info(f"   委托数量: {target['position_size']} 股")
-    
-    # 实际实现时，这里应该调用券商API
-    # broker_api.place_order(
-    #     symbol=target['code'],
-    #     price=target['entry_price'],
-    #     quantity=target['position_size'],
-    #     order_type='limit'
-    # )
 
 def save_trading_plan(trading_targets: List[Dict[str, Any]], analysis_time: str) -> None:
     """保存交易计划到文件"""
@@ -149,3 +113,42 @@ def save_trading_plan(trading_targets: List[Dict[str, Any]], analysis_time: str)
     
     logger.info(f"💾 交易计划已保存: {filename}")
     logger.info(f"📊 共保存 {len(trading_targets)} 个交易标的")
+
+def execute_trading_strategy(screening_results: Dict[str, Any]) -> None:
+    """
+    执行交易策略
+    
+    Args:
+        [main.py传来的参数]screening_results: 来自筛选模块的结果字典
+            - passed_stocks: 通过筛选的股票详细信息
+            - stock_codes: 股票代码列表
+            - analysis_time: 分析时间
+            - total_analyzed: 总分析数量
+            - passed_count: 通过筛选数量
+    """
+    logger = logging.getLogger()
+    
+    # 解析筛选结果
+    # 筛选的股票代码
+    passed_stocks = screening_results['passed_stocks']
+    stock_codes = screening_results['stock_codes']
+    analysis_time = screening_results['analysis_time']
+    
+    logger.info("\n" + "="*60)
+    logger.info("🚀 交易模块启动")
+    logger.info("="*60)
+    logger.info(f"📊 筛选时间: {analysis_time}")
+    logger.info(f"📈 待交易标的数量: {len(stock_codes)}")
+    
+    # 处理每只股票（新建trading_targets列表存储要处理的标的信息字典，采用process_trading_target进行遍历处理）
+    trading_targets = []
+    for stock_info in passed_stocks:
+        target = process_trading_target(stock_info)
+        # 函数的实际定义发生时在模块加载时就已经创建
+        trading_targets.append(target)
+    
+    # 执行交易决策
+    execute_trades(trading_targets)
+    
+    # 保存交易计划
+    save_trading_plan(trading_targets, analysis_time)

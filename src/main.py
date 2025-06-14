@@ -218,5 +218,6 @@ if __name__ == "__main__":
     if screening_results['stock_codes']:
         print(f"\n🚀 启动交易模块，处理 {len(screening_results['stock_codes'])} 只股票")
         execute_trading_strategy(screening_results)
+        # excute_trading_strategy ->
     else:
         print("\n⚠️ 没有股票通过筛选，跳过交易模块")
