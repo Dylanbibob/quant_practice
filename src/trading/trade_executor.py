@@ -45,9 +45,9 @@ def process_trading_target(stock_info: Dict[str, Any]) -> Dict[str, Any]:
         'current_price': latest_price,
         'ma5': ma5,
         'ma20': ma20,
-        'entry_price': latest_price * 1.02,  # 突破买入价
-        'stop_loss': latest_price * 0.95,    # 止损价
-        'take_profit': latest_price * 1.08,  # 止盈价
+        'entry_price': (latest_price * 1.02).round(2),  # 突破买入价
+        'stop_loss': (latest_price * 0.95).round(2),    # 止损价
+        'take_profit': (latest_price * 1.08).round(2),  # 止盈价
         'position_size': calculate_position_size(latest_price),
         'priority': calculate_priority(stock_info),
         'created_time': dt.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

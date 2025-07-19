@@ -45,7 +45,7 @@ def main():
     logger = logging.getLogger()
     
     logger.info(f"📁 日志将保存到: {log_file}")
-    today_market_filename = f'..\\data\\stock_pool_data\\stock_data_pool{today}.csv'
+    today_market_filename = f'.\\data\\stock_pool_data\\stock_data_pool{today}.csv'
     
     # 检查当天的股票池CSV文件数据是否存在
     if os.path.exists(today_market_filename):
@@ -69,7 +69,7 @@ def main():
                                         (stock_data_pool['换手率'] < 10) & 
                                         (stock_data_pool['量比'] > 1) &
                                         (stock_data_pool['总市值'] > 50) & 
-                                        (stock_data_pool['总市值'] < 100)]
+                                        (stock_data_pool['总市值'] < 200)]
 
     # file_path = f'e:\\desktop\\stock.csv'
     # data.to_csv(f'e:\\desktop\\stock.csv', index=False,encoding ='utf-8-sig')
@@ -101,7 +101,7 @@ def main():
         
         try:
             # 构建文件路径
-            file_path = f'..\\data\\single_stock_data\\{ffdc}_{latest_trade_date_str}.csv'
+            file_path = f'.\\data\\single_stock_data\\{ffdc}_{latest_trade_date_str}.csv'
             
             # 使用函数获取股票数据（优先本地，否则网络获取）
             ffdc_stock_data, from_local = load_stock_data(ffdc, file_path, start_date, today)
